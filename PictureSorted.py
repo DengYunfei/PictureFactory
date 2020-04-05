@@ -64,6 +64,7 @@ class pictureSortedUI():
             self.label_1_1 = tk.Label(self.frames[-1], text='请选择产品套系', anchor="w")
             self.label_1_1.place(relx=0.01, rely=0.05, relwidth=0.19, relheight=0.45)
             self.list = pictureSorted.userList[-1].products[frame].combination
+            print(pictureSorted.userList[-1].products[frame].combination)
             self.comvalue_1 = tk.StringVar()  # 窗体自带的文本，新建一个值
             self.comboxlist_1_2 = ttk.Combobox(self.frames[-1], values=self.list)
             self.comboxlists.append(self.comboxlist_1_2)
@@ -173,8 +174,8 @@ class product():
             if self.product["category"].split('-')[0] == "相册":
                 self.product["type"] = '相册'
             else:
-                self.product["type"] = '其他'
-                self.product["category"] = self.product["type"] + self.product["category"].split('-')[1]
+                self.product["type"] = '台历'
+                self.product["category"] = "-".join((self.product["type"] , self.product["category"].split('-')[1]))
 
 
         else:
