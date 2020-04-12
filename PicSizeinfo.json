@@ -9,12 +9,16 @@
             "height": 2500
         }, {
             "name": "窄8",
-            "width": 3000,
+            "width": 3040,
             "height": 2000
         }, {
             "name": "8寸琉璃",
             "width": 3100,
             "height": 2000
+        }, {
+            "name": "8寸琉璃-封面",
+            "width": 1600,
+            "height": 2100
         }, {
             "name": "16寸竖版",
             "width": 5000,
@@ -79,6 +83,15 @@
             "name": "32寸-横",
             "height": 5700,
             "width": 7100
+        }
+    ],"台历": [ {
+            "name": "8寸",
+            "width": 1750,
+            "height": 1250
+        }, {
+            "name": "12寸",
+            "width": 2500,
+            "height": 2000
         }
     ]
 }
