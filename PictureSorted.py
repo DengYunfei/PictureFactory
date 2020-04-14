@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import tkinter as tk
@@ -6,9 +7,11 @@ from tkinter import ttk
 
 from PIL import Image
 
+import MySQL
+
 with open('PicSizeinfo.json', 'r', encoding='utf-8') as Jfile:
     sizeInfo = json.load(Jfile)
-    sizename = {"相册": [], "摆台": [], "放大": [], "其他": []}
+    sizename = {"相册": [], "摆台": [], "放大": [], "台历": []}
     for a in sizeInfo:
         for b in sizeInfo[a]:
             sizename[a].append(b["name"])
@@ -175,7 +178,7 @@ class product():
                 self.product["type"] = '相册'
             else:
                 self.product["type"] = '台历'
-                self.product["category"] = "-".join((self.product["type"] , self.product["category"].split('-')[1]))
+                self.product["category"] = "-".join((self.product["type"], self.product["category"].split('-')[1]))
 
 
         else:
@@ -224,8 +227,12 @@ class pictureSorted():
         self.userName = path.split('\\')[-1]
         self.userPath = path
         self.products = []
+        self.clientDict = {}
         self.userList.append(self)
         self.viewProduct()
+        self.gatjson()
+        self.write_MySQL()
+        self.save_pictureSorted()
 
     def viewProduct(self):
         invalidDirectory = ['未知尺寸', "@P$%#"]
@@ -242,14 +249,47 @@ class pictureSorted():
         # print(self.products)
         self.op = pictureSortedUI()
         self.op.root.mainloop()
-        self.save_pictureSorted()
 
     def save_pictureSorted(self):
-        self.pictureSorted = []
-        for product in self.products:
-            self.pictureSorted.append(product.product)
         with open(self.userName + '.json', "w", encoding='utf-8') as jfile:
-            json.dump(self.pictureSorted, jfile,  ensure_ascii=False)
+            json.dump(self.clientDict, jfile, ensure_ascii=False)
+
+    def gatjson(self):
+        self.clientDict['studio'] = self.userPath.split("\\")[1]
+        self.clientDict['date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(self.clientDict['date'])
+        self.clientDict['client'] = self.userPath.split("\\")[-1]
+        self.clientDict['productCount'] = len(self.products)
+        self.clientDict['products'] = []
+        for product in self.products:
+            self.clientDict['products'].append(product.product)
+
+    def write_MySQL(self):
+        if MySQL.MySQL("select studio_id from studio where studio_name = '%s'" % (self.clientDict['studio'])) == ():
+            MySQL.MySQL(
+                "INSERT INTO studio ( factory_id,studio_name,studio_number,studio_address)VALUES( 1, '%s','','' )" % (
+                    self.clientDict['studio']))
+
+        studio_id = MySQL.MySQL("select studio_id from studio where studio_name = '%s'" % (self.clientDict['studio']))
+        print(studio_id)
+        MySQL.MySQL(
+            "INSERT INTO client ( studio_id,client_name,product_count,date_created)VALUES(%d,'%s',%d,str_to_date('%s','%%Y-%%m-%%d %%H:%%i:%%s'))" % (
+                studio_id[0]['studio_id'], self.clientDict['client'], self.clientDict['productCount'],
+                self.clientDict['date']))
+        client = MySQL.MySQL(
+            "select client_id from client where client_name = '%s'" % (self.clientDict['client']))
+        print(client)
+        for a in self.clientDict['products']:
+            MySQL.MySQL(
+                '''INSERT INTO products ( factory_id,client_id,product_style,product_type,product_size,
+                pic_count,date_created)VALUES( 1, %d,%s,%s,%s,%d, str_to_date('%s','%%Y-%%m-%%d %%H:%%i:%%s'))''' % (
+                    client[0]['client_id'], a["setmeal"], a["type"], a["size"], a["count"], datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            products = MySQL.MySQL('select product_id from products order by product_id desc limit 1')
+            for b in a['files']:
+                MySQL.MySQL(
+                    'INSERT INTO products ( products_id,pic_width,pic_height,pic_path)VALUES( %d, %d,%d,%s)' % (
+                        products[0]['product_id'], a["size"][0], a["size"][1], b['Path']))
+        pass
 
 
 if __name__ == '__main__':
