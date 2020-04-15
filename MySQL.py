@@ -9,7 +9,7 @@ def MySQL(sql):
     user = 'root'
     passwd = 'feiyang411'
     dbName = 'Picture_Factory'
-
+    print('sql=', sql)
     # 创建数据链接
     conn = pymysql.connect(host=host, port=port, user=user, passwd=passwd, db=dbName)
     # 创建游标
@@ -17,18 +17,15 @@ def MySQL(sql):
 
     cursor.execute(sql)
 
+    cursor.connection.commit()
     result = cursor.fetchall()
-
     return result
     cursor.close()
     conn.close()
 
 
 if __name__ == '__main__':
-    # print(type(time.localtime(time.time())))
-    dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(dt)
-    MySQL(
-        "INSERT INTO client ( studio_id,client_name,product_count,date_created)VALUES(%d,'%s',%d,str_to_date('%s','%%Y-%%m-%%d %%H:%%i:%%s'))" % (
-            1, 'asd', 10, dt))
-    print(MySQL('select * from client order by client_id desc limit 1'))
+    # # print(type(time.localtime(time.time())))
+    # dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # print(dt)
+    print(MySQL("SELECT * FROM picture"))

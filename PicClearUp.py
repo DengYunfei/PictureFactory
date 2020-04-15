@@ -72,7 +72,7 @@ def PicFiltrate(path):
                     savepath = os.path.join(path, PicType[0])
                 else:
                     newFileNameList = newFileName.split("-")
-                    newFileNameList[-1]= "★" + newFileNameList[-1]
+                    newFileNameList[-1] = "★" + newFileNameList[-1]
                     newFileName = "-".join(newFileNameList)
                     newFileName = newFileName[:-4] + "_" + str(picCuunt) + ".jpg"
                     mkdir(path, PicType[0])

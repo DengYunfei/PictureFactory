@@ -80,7 +80,8 @@ class pictureSortedUI():
             self.label_3_1 = tk.Label(self.frames[-1], text='产品尺寸')
             self.label_3_1.place(relx=.34, rely=0.05, relwidth=0.16, relheight=0.45)
             self.label_3_2 = tk.Label(self.frames[-1],
-                                      text='x'.join(pictureSorted.userList[-1].products[frame].product["size"]))
+                                      text=str(pictureSorted.userList[-1].products[frame].product["size"][0]) + 'x' +
+                                           str(pictureSorted.userList[-1].products[frame].product["size"][1]))
             self.label_3_2.place(relx=.34, rely=0.5, relwidth=0.16, relheight=0.45)
             self.label_4_1 = tk.Label(self.frames[-1], text='尺寸别名')
             self.label_4_1.place(relx=.51, rely=0.05, relwidth=0.16, relheight=0.45)
@@ -138,7 +139,11 @@ class pictureSortedUI():
     def save_sorted(self):
         a = 0
         for comboxlist in self.comboxlists:
-            pictureSorted.userList[-1].products[a].product["setmeal"] = comboxlist.get()
+            if comboxlist.get():
+                pictureSorted.userList[-1].products[a].product["setmeal"] = comboxlist.get()
+            else:
+                pictureSorted.userList[-1].products[a].product["setmeal"] = '未知套系'
+            a += 1
             print(comboxlist.get())
         self.root.destroy()
 
@@ -197,13 +202,13 @@ class product():
 
     def get_picSize(self, path):
         with Image.open(path) as pic:
-            return [str(pic.width), str(pic.height)]
+            return [pic.width, pic.height]
 
     def get_Sizename(self, sized):
         for items in sizeInfo:
             for size in sizeInfo[items]:
-                if int(sized[0]) >= size["width"] and int(sized[0]) <= size["width"] + 100:
-                    if int(sized[1]) >= size["height"] and int(sized[1]) <= size["height"] + 100:
+                if sized[0] >= size["width"] and sized[0] <= size["width"] + 100:
+                    if sized[1] >= size["height"] and sized[1] <= size["height"] + 100:
                         return items + '-' + size["name"]
 
         return "未知尺寸"
@@ -278,27 +283,28 @@ class pictureSorted():
                 self.clientDict['date']))
         client = MySQL.MySQL(
             "select client_id from client where client_name = '%s'" % (self.clientDict['client']))
-        print(client)
+
         for a in self.clientDict['products']:
+            # print('a:',a)
             MySQL.MySQL(
-                '''INSERT INTO products ( factory_id,client_id,product_style,product_type,product_size,
-                pic_count,date_created)VALUES( 1, %d,%s,%s,%s,%d, str_to_date('%s','%%Y-%%m-%%d %%H:%%i:%%s'))''' % (
-                    client[0]['client_id'], a["setmeal"], a["type"], a["size"], a["count"], datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                "INSERT INTO products ( factory_id,client_id,product_style,product_type,product_size,\
+                pic_count,date_created)VALUES( 1, %d,'%s','%s','%s',%d, str_to_date('%s','%%Y-%%m-%%d %%H:%%i:%%s'))" % (
+                    client[0]['client_id'], a["setmeal"], a["type"], a["category"], a["count"],
+                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
             products = MySQL.MySQL('select product_id from products order by product_id desc limit 1')
             for b in a['files']:
+                print('product_id:', products[0]['product_id'], type(products[0]['product_id']))
+                print('宽:', a["size"][0], type(a["size"][0]))
+                print('高:', a["size"][1], type(a["size"][1]))
+                print('Path:', b['Path'], type(b['Path']))
                 MySQL.MySQL(
-                    'INSERT INTO products ( products_id,pic_width,pic_height,pic_path)VALUES( %d, %d,%d,%s)' % (
+                    "INSERT INTO picture ( products_id,pic_width,pic_height,pic_path)VALUES( %d, %d,%d,'%s')" % (
                         products[0]['product_id'], a["size"][0], a["size"][1], b['Path']))
         pass
 
 
 if __name__ == '__main__':
-    pathList = ["E:/输出/2020.01/12\艾尔沃克\\12.11选片 赵小玲 选不看（金）",
-                "E:/输出/2020.01/12\艾尔沃克\\12.11选片 郭芳菲 选不看",
-                "E:/输出/2020.01/12\艾尔沃克\\12.12选片 朗雅婧 选不看（金）",
-                "E:/输出/2020.01/12\艾尔沃克\\12.12选片 王睿朵 选 不看399(金）",
-                "E:/输出/2020.01/12\艾尔沃克\\12.1选片 桐桐 选 不看（金）",
-                "E:/输出/2020.01/12\艾尔沃克\\12.7选片 彭娟 选不看（金）"
+    pathList = ["E:/PictureFactory测试目录/2020.04.08\艾尔沃克\\不看版 梁娇（刚）"
                 ]
     for path in pathList:
         user = pictureSorted(path)
