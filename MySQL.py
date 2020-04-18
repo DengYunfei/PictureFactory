@@ -28,4 +28,5 @@ if __name__ == '__main__':
     # # print(type(time.localtime(time.time())))
     # dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     # print(dt)
-    print(MySQL("SELECT * FROM picture"))
+    for a in MySQL('select * from products'):
+        print(a)
