@@ -7,7 +7,7 @@ from tkinter import ttk
 
 from PIL import Image
 
-import MySQL
+from MySQL import MySQL
 
 with open('PicSizeinfo.json', 'r', encoding='utf-8') as Jfile:
     sizeInfo = json.load(Jfile)
@@ -105,7 +105,6 @@ class pictureSortedUI():
         self.btn_save.place(relx=0.45, rely=0.94, relwidth=0.1, relheight=0.05)
 
     # 窗口居中显示
-
     def set_win_center(self, curWidth='', curHight=''):
         '''
         设置窗口大小，并居中显示
@@ -123,7 +122,7 @@ class pictureSortedUI():
         # print(curWidth, curHight)
 
         # 获取屏幕宽度和高度
-        scn_w, scn_h = [2560, 1440]
+        scn_w, scn_h = [1280, 800]
         # print(scn_w, scn_h)
 
         # 计算中心坐标
@@ -168,6 +167,7 @@ class product():
         self.file = {}
         self.product["count"] = 0
         if os.path.isdir(path):
+            # 相册或台历产品
             for item in os.scandir(path):
                 if item.name.split('.')[-1].lower() == "jpg":
                     self.product["size"] = self.get_picSize(item.path)
@@ -187,6 +187,7 @@ class product():
 
 
         else:
+            # 放大、摆台、其他产品
             self.product["size"] = self.get_picSize(path)
             self.product["category"] = self.get_Sizename(self.product["size"])
             self.product["type"] = self.product["category"].split('-')[0]
@@ -228,9 +229,9 @@ class pictureSorted():
     userList = []
 
     def __init__(self, path):
+        self.userPath = path.replace("\\", "/")
         self.sizeInfo = sizeInfo
-        self.userName = path.split('\\')[-1]
-        self.userPath = path
+        self.userName = self.userPath.split('/')[-1]
         self.products = []
         self.clientDict = {}
         self.userList.append(self)
@@ -260,51 +261,71 @@ class pictureSorted():
             json.dump(self.clientDict, jfile, ensure_ascii=False)
 
     def gatjson(self):
-        self.clientDict['studio'] = self.userPath.split("\\")[1]
+        print('12345363', self.userPath)
+        self.clientDict['studio'] = self.userPath.split("/")[-2]
+        self.clientDict['client_path'] = '/'.join(self.userPath.split('/')[-3:])
         self.clientDict['date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(self.clientDict['date'])
-        self.clientDict['client'] = self.userPath.split("\\")[-1]
+        print(self.clientDict.get('date'))
+        self.clientDict['client'] = self.userPath.split("/")[-1]
         self.clientDict['productCount'] = len(self.products)
         self.clientDict['products'] = []
         for product in self.products:
             self.clientDict['products'].append(product.product)
 
     def write_MySQL(self):
-        if MySQL.MySQL("select studio_id from studio where studio_name = '%s'" % (self.clientDict['studio'])) == ():
-            MySQL.MySQL(
+        print(self.clientDict.get('studio'))
+        if not MySQL("select studio_id from studio where studio_name = '%s'" % (self.clientDict.get('studio'))):
+            MySQL(
                 "INSERT INTO studio ( factory_id,studio_name,studio_number,studio_address)VALUES( 1, '%s','','' )" % (
-                    self.clientDict['studio']))
+                    self.clientDict.get('studio')))
 
-        studio_id = MySQL.MySQL("select studio_id from studio where studio_name = '%s'" % (self.clientDict['studio']))
+        studio_id = MySQL("select studio_id from studio where studio_name = '%s'" % (self.clientDict.get('studio')))
         print(studio_id)
-        MySQL.MySQL(
-            "INSERT INTO client ( studio_id,client_name,product_count,date_created)VALUES(%d,'%s',%d,str_to_date('%s','%%Y-%%m-%%d %%H:%%i:%%s'))" % (
-                studio_id[0]['studio_id'], self.clientDict['client'], self.clientDict['productCount'],
-                self.clientDict['date']))
-        client = MySQL.MySQL(
-            "select client_id from client where client_name = '%s'" % (self.clientDict['client']))
+        if not MySQL("select client_id from client where client_name = '%s'" % (self.clientDict.get('client'))):
+            MySQL(
+                "INSERT INTO client ( studio_id,client_name,client_path,product_count,date_created)VALUES\
+                (%d,'%s','%s',%d,str_to_date('%s','%%Y-%%m-%%d %%H:%%i:%%s'))" % (studio_id[0].get('studio_id'),
+                                                                                  self.clientDict.get('client'),
+                                                                                  self.clientDict.get('client_path'),
+                                                                                  self.clientDict.get('productCount'),
+                                                                                  self.clientDict.get('date')))
+        client = MySQL(
+            "select client_id from client where client_name = '%s'" % (self.clientDict.get('client')))
 
-        for a in self.clientDict['products']:
-            # print('a:',a)
-            MySQL.MySQL(
-                "INSERT INTO products ( factory_id,client_id,product_style,product_type,product_size,\
-                pic_count,date_created)VALUES( 1, %d,'%s','%s','%s',%d, str_to_date('%s','%%Y-%%m-%%d %%H:%%i:%%s'))" % (
-                    client[0]['client_id'], a["setmeal"], a["type"], a["category"], a["count"],
-                    datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-            products = MySQL.MySQL('select product_id from products order by product_id desc limit 1')
-            for b in a['files']:
-                print('product_id:', products[0]['product_id'], type(products[0]['product_id']))
-                print('宽:', a["size"][0], type(a["size"][0]))
-                print('高:', a["size"][1], type(a["size"][1]))
-                print('Path:', b['Path'], type(b['Path']))
-                MySQL.MySQL(
+        for a in self.clientDict.get('products'):
+            # print('a:', a['files'][0].get('Path').split('/')[-5:-1])
+            if len(a.get('files')) == 1:
+                MySQL(
+                    "INSERT INTO products ( factory_id,client_id,product_path,product_style,product_type,product_size,\
+                    pic_count,date_created)VALUES( 1, %d,'%s','%s','%s','%s',%d, str_to_date('%s','%%Y-%%m-%%d %%H:%%i:%%s'))"
+                    % (client[0].get('client_id'), '/'.join(a.get('files')[0].get('Path').split('/')[-4:-1]),
+                       a.get("setmeal"),
+                       a.get("type"), a.get("category"), a.get("count"),
+                       datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                products = MySQL('select product_id from products order by product_id desc limit 1')
+                MySQL(
                     "INSERT INTO picture ( products_id,pic_width,pic_height,pic_path)VALUES( %d, %d,%d,'%s')" % (
-                        products[0]['product_id'], a["size"][0], a["size"][1], b['Path']))
+                        products[0].get('product_id'), a.get("size")[0], a.get("size")[1],
+                        '/'.join(a.get('files')[0].get('Path').split('/')[-4:])))
+            else:
+                MySQL(
+                    "INSERT INTO products ( factory_id,client_id,product_path,product_style,product_type,product_size,\
+                    pic_count,date_created)VALUES( 1, %d,'%s','%s','%s','%s',%d, str_to_date('%s','%%Y-%%m-%%d %%H:%%i:%%s'))"
+                    % (client[0].get('client_id'), '/'.join(a.get('files')[0].get('Path').split('/')[-5:-1]),
+                       a.get("setmeal"),
+                       a.get("type"), a.get("category"), a.get("count"),
+                       datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+                products = MySQL('select product_id from products order by product_id desc limit 1')
+                for b in a.get('files'):
+                    MySQL(
+                        "INSERT INTO picture ( products_id,pic_width,pic_height,pic_path)VALUES( %d, %d,%d,'%s')" % (
+                            products[0].get('product_id'), a.get("size")[0], a.get("size")[1],
+                            '/'.join(b.get('Path').split('/')[-5:])))
         pass
 
 
 if __name__ == '__main__':
-    pathList = ["E:/PictureFactory测试目录/2020.04.08\艾尔沃克\\不看版 梁娇（刚）"
+    pathList = ["/Users/dengyunfei/PycharmProjects/2020.04.17/埃尔沃克/3.22 苏莉薪 选不看（金）"
                 ]
     for path in pathList:
         user = pictureSorted(path)
