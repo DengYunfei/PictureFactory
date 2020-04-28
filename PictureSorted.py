@@ -8,7 +8,6 @@ from tkinter import ttk
 from PIL import Image
 
 from MySQL import MySQL
-
 with open('PicSizeinfo.json', 'r', encoding='utf-8') as Jfile:
     sizeInfo = json.load(Jfile)
     sizename = {"相册": [], "摆台": [], "放大": [], "台历": []}

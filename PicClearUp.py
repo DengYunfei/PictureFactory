@@ -72,16 +72,16 @@ def pic_filtrate(path):
             if file.split('.')[-1].lower() == 'jpg':
                 # 处理*.jpg文件
                 with Image.open(os.path.join(root, file)) as img_pillow:
-                    PicSize = get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
-                    PicType = get_pic_type(PicSize)  # 获得细分品类    返回值：元组(类型，尺寸)
+                    pic_size = get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
+                    pic_type = get_pic_type(pic_size)  # 获得细分品类    返回值：元组(类型，尺寸)
                 newFileName = os.path.join(root, file)[len(path) + 1:]  # 取得选择路径以后部分
                 newFileName = newFileName.replace('/', '-')  # 非windows系统路径扁平化
                 newFileName = newFileName.replace('\\', '-')  # windows系统路径扁平化
-                if PicType[0] == "未知尺寸":
+                if pic_type[0] == "未知尺寸":
                     # 未知尺寸产品处理
-                    mk_dir(os.path.join(path, '分拣'), PicType[0])
-                    savepath = os.path.join(path, '分拣', PicType[0])
-                elif PicType[0] == "相册":
+                    mk_dir(os.path.join(path, '分拣'), pic_type[0])
+                    savepath = os.path.join(path, '分拣', pic_type[0])
+                elif pic_type[0] == "相册":
                     # 相册产品处理
                     newFileNameList = newFileName.split("-")
                     newFileNameList[-1] = "★" + newFileNameList[-1]
@@ -89,13 +89,13 @@ def pic_filtrate(path):
                     newFileName = newFileName[:-4] + "_" + str(picCuunt) + ".jpg"
                     # print('type：',PicSize[0])
 
-                    mk_dir(os.path.join(path, '分拣'), PicType[1])
-                    savepath = os.path.join(path, '分拣', PicType[1])
+                    mk_dir(os.path.join(path, '分拣'), pic_type[1])
+                    savepath = os.path.join(path, '分拣', pic_type[1])
                 else:
                     # 其他产品处理
-                    mk_dir(os.path.join(path, '分拣'), PicType[0])
-                    savepath = os.path.join(path, '分拣', PicType[0])
-                    newFileName = PicType[1] + '-' + newFileName
+                    mk_dir(os.path.join(path, '分拣'), pic_type[0])
+                    savepath = os.path.join(path, '分拣', pic_type[0])
+                    newFileName = pic_type[1] + '-' + newFileName
 
                 count += 1  # 计数器增加1
                 if diff(os.path.join(root, file), os.path.join(path, savepath, newFileName)):
@@ -112,7 +112,6 @@ def pic_filtrate(path):
                         error_info.append(path.join(root, file))
                         print('拷贝', os.path.join(root, file), '失败')
 
-                count += 1
     counts = {'count': count, 'copyright_count': copyright_count}
     return error_info, counts
 
