@@ -5,11 +5,29 @@ from shutil import copyfile
 import re
 from tkinter import filedialog
 from PIL import Image
+import hashlib
+from tkinter import messagebox
 
 # 加载尺寸信息
 # 读取尺寸描述文件
 with open("PicSizeinfo.json", 'r', encoding='utf-8') as json_file:
     picSizeinfo = json.load(json_file)
+
+
+# 判断两个文件是否相同
+def diff(file_1, file_2):
+    with open(file_1, 'rb') as file:
+        data = file.read()
+        file_1_md5 = hashlib.md5(data).hexdigest()
+    # print(file_2)
+    if os.path.isfile(file_2):
+        with open(file_2, 'rb') as file:
+            data = file.read()
+            file_2_md5 = hashlib.md5(data).hexdigest()
+    else:
+        file_2_md5 = ""
+    if file_1_md5 == file_2_md5:
+        return True
 
 
 # 创建文件夹
@@ -45,19 +63,20 @@ def PicFiltrate(path):
     # InvalidDirectory = ['未知尺寸', '分拣']
     tpyeLine = ['未知尺寸', '分拣']
     # for items in picSizeinfo:
-        # InvalidDirectory.append(items)
-        # tpyeLine.append(items)
-        # for size in picSizeinfo[items]:
-            # InvalidDirectory.append(size["name"])
+    # InvalidDirectory.append(items)
+    # tpyeLine.append(items)
+    # for size in picSizeinfo[items]:
+    # InvalidDirectory.append(size["name"])
     # print(InvalidDirectory)  # 查看忽略目录列表
     # print(tpyeLine)  # 查看忽略目录列表
     count = 0
-
+    copyright_count = 0
+    error_info = []
     mkdir(path, '分拣')
     # 遍历指定路径下所有jpg文件
     for root, dir, files in os.walk(path):
         # 快速跳出忽略目录
-        if re.search( '分拣',root):
+        if re.search('分拣', root):
             # print(re.search)
             continue
             # 保证当前在最外层目录
@@ -75,7 +94,7 @@ def PicFiltrate(path):
                 # print(type(PicType))
                 # print(type(os.path.join(root, file)[len(path) + 1:]))
                 newFileName = os.path.join(root, file)[len(path) + 1:]
-                print('newFileName：', newFileName)
+                # print('newFileName：', newFileName)
                 # newFileName = newFileName.replace('/', '-')
                 # print(newFileName)
                 newFileName = newFileName.replace('\\', '-')
@@ -99,21 +118,33 @@ def PicFiltrate(path):
                         savepath = os.path.join(path, '分拣', PicType[0])
                         # print('savepath:',savepath)
                         newFileName = PicType[1] + '-' + newFileName
-                print(os.path.join(root, file), "\n", os.path.join(savepath, newFileName), "\n\n\n")
+                # print(os.path.join(root, file), "\n", os.path.join(savepath, newFileName), "\n\n\n")
                 # copyfile(os.path.join(root, file), os.path.join(savepath, newFileName))
-                try:
-                    copyfile(os.path.join(root, file), os.path.join(path, savepath, newFileName))
-                    print("文件已COPY到", count, os.path.join(path, savepath, newFileName))
-                except:
-                    print('拷贝', os.path.join(root, file), '失败')
-                # print(os.path.join(root, file)[len(path) + 1:])
+                if diff(os.path.join(root, file), os.path.join(path, savepath, newFileName)):
+                    print(count, os.path.join(root, file), "没有改变。")
+                    # messagebox.showinfo('', str(count)+" "+os.path.join(root, file))
+                else:
+                    # 文件不同 尝试移动文件
+                    try:
+                        # 移动成功
+                        copyfile(os.path.join(root, file), os.path.join(path, savepath, newFileName))
+                        print(count, "文件已COPY到", os.path.join(path, savepath, newFileName))
+                        copyright_count += 1
+                    except:
+                        # 移动失败
+                        error_info.append(path.join(root, file))
+                        print('拷贝', os.path.join(root, file), '失败')
+
                 count += 1
-                # print(picsize)
-                # else:
-                # mkdir(path, "未知尺寸")
-                # os.system('copy' + os.path.join(root, file) + os.path.join(path, size["name"], file))
-                # print(os.path.join(root, file)[len(path) + 1:])
-                # print(picsize)
+    counts =  {'count':count, 'copyright_count':copyright_count}
+    return error_info, counts
+    # print(os.path.join(root, file)[len(path) + 1:])
+    # print(picsize)
+    # else:
+    # mkdir(path, "未知尺寸")
+    # os.system('copy' + os.path.join(root, file) + os.path.join(path, size["name"], file))
+    # print(os.path.join(root, file)[len(path) + 1:])
+    # print(picsize)
 
 
 if __name__ == '__main__':
@@ -124,5 +155,14 @@ if __name__ == '__main__':
     #         print(items+"-"+size["name"])
     Fpath = filedialog.askdirectory()
     # mkdir(Fpath, '7c')
-    PicFiltrate(Fpath)
+    error_info, count = PicFiltrate(Fpath)
+    # error_info = ["1","2"]
+    # count={"copyright_count":2,"count":10}
+    if error_info:
+        error_text = '错误信息'
+        for info in error_info:
+            error_text =error_text+"\n"+info
+        messagebox.showinfo("错误", error_text)
+    else:
+        messagebox.showinfo("成功", '共导检测到【'+str(count.get('count'))+'】张照片\n新添加【'+str(count.get('copyright_count'))+'】张照片')
     # print(Fpath)
