@@ -1,9 +1,42 @@
 import json, os, re, hashlib
-import tkinter as tk
 from shutil import copyfile
-from tkinter import filedialog
 from PIL import Image
 from tkinter import messagebox
+import tkinter as tk
+from tkinter import filedialog
+
+
+class PicClearUp_UI():
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("图片分拣")
+        self.root.attributes()
+        self.root.geometry('480x120')
+        self.path =""
+        self.root.resizable(0, 0)  # 防止用户调整尺寸
+        self._setpage()
+
+    def _setpage(self):
+        self.label = tk.Label(self.root, text='请选择日期文件夹', anchor="w")
+        self.btn1 = tk.Button(self.root, text='...', command=self.chooseDir)
+        self.btn2 = tk.Button(self.root, text='确认', command=self.enterPath)
+        self.entry = tk.Entry(self.root)
+
+        # 绘制窗口控件
+
+        self.label.place(relx=0.01, rely=0.1, relwidth=0.5, relheight=0.2)
+        self.btn1.place(relx=0.84, rely=0.4, relwidth=0.15, relheight=0.2)
+        self.entry.place(relx=0.01, rely=0.4, relwidth=0.82, relheight=0.2)
+        self.btn2.place(relx=0.4, rely=0.7, relwidth=0.15, relheight=0.2)
+
+    def chooseDir(self):
+        Fpath = filedialog.askdirectory()
+        self.entry.insert(0, Fpath)
+
+    def enterPath(self):
+        self.path = self.entry.get()
+        self.root.destroy()
+
 
 # 加载尺寸信息
 # 读取尺寸描述文件
@@ -115,12 +148,33 @@ def pic_filtrate(path):
     counts = {'count': count, 'copyright_count': copyright_count}
     return error_info, counts
 
+def pic_clear_up():
+    op = PicClearUp_UI()
+    op.root.mainloop()  # 显示获取路径窗体
+    #判断用户有无输入路径
+    if op.path:
+        #有路径信息
+        fpath = op.path
+    else:
+        #无路径信息，退出方法
+        return
+    error_info, count = pic_filtrate(fpath)
+    if error_info:
+        error_text = '错误信息'
+        for info in error_info:
+            error_text = error_text + "\n" + info
+        messagebox.showinfo("错误", error_text)
+    else:
+        messagebox.showinfo("成功", '共导检测到【' + str(count.get('count')) + '】张照片\n新添加【' + str(
+            count.get('copyright_count')) + '】张照片')
+
 
 if __name__ == '__main__':
-    root = tk.Tk()
-    root.withdraw()
-    fpath = filedialog.askdirectory()
-    error_info, count = pic_filtrate(fpath)
+    op = PicClearUp_UI()
+    op.root.mainloop()  #显示获取路径窗体
+    f_path = op.path
+
+    error_info, count = pic_filtrate(f_path)
     if error_info:
         error_text = '错误信息'
         for info in error_info:

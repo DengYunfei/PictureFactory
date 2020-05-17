@@ -14,7 +14,7 @@ with open('PicSizeinfo.json', 'r', encoding='utf-8') as Jfile:
     for a in sizeInfo:
         for b in sizeInfo[a]:
             sizename[a].append(b["name"])
-    print(sizename["相册"])
+    # print(sizename["相册"])
 
 with open('PriceList.json', 'r', encoding='utf-8') as Jfile:
     PriceList = json.load(Jfile)
@@ -31,13 +31,14 @@ with open('PriceList.json', 'r', encoding='utf-8') as Jfile:
                 pass
             else:
                 combination["其他"].append(a["套系"])
-    print(combination)
+    # print(combination)
 
 
 class pictureSortedUI():
     def __init__(self):
         print(pictureSorted.userList[-1].products)
         self.root = tk.Tk()
+        self.root.title(pictureSorted.userList[-1].userName)
         self.root.attributes()
         self.root.geometry('640x480')
         self.root.resizable(0, 0)  # 防止用户调整尺寸
@@ -71,7 +72,7 @@ class pictureSortedUI():
             self.comboxlist_1_2 = ttk.Combobox(self.frames[-1], values=self.list)
             self.comboxlists.append(self.comboxlist_1_2)
             # self.comboxlist_1_2.current(x)
-            self.comboxlist_1_2.place(relx=0.01, rely=0.5, relwidth=0.16, relheight=0.45)
+            self.comboxlist_1_2.place(relx=0.01, rely=0.5, relwidth=0.16, relheight=0.5)
             self.label_2_1 = tk.Label(self.frames[-1], text='产品类型')
             self.label_2_1.place(relx=.17, rely=0.05, relwidth=0.16, relheight=0.45)
             self.label_2_2 = tk.Label(self.frames[-1], text=pictureSorted.userList[-1].products[frame].product["type"])
@@ -236,7 +237,7 @@ class pictureSorted():
         self.userList.append(self)
         self.viewProduct()
         self.gatjson()
-        self.write_MySQL()
+        # self.write_MySQL()
         self.save_pictureSorted()
 
     def viewProduct(self):
@@ -324,7 +325,7 @@ class pictureSorted():
 
 
 if __name__ == '__main__':
-    pathList = ["/Users/dengyunfei/PycharmProjects/2020.04.17/埃尔沃克/3.22 苏莉薪 选不看（金）"
+    pathList = ["/Users/dengyunfei/Public/PycharmProjects/2020.04.17/埃尔沃克/3.22 苏莉薪 选不看（金）"
                 ]
     for path in pathList:
         user = pictureSorted(path)

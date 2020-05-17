@@ -1,4 +1,3 @@
-import datetime
 
 import pymysql
 
@@ -28,5 +27,8 @@ if __name__ == '__main__':
     # # print(type(time.localtime(time.time())))
     # dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     # print(dt)
-    for a in MySQL('select * from products'):
-        print(a)
+    for a in MySQL('select `client`.`client_name` AS `client_name`,`products`.`product_size` AS `product_size`,`products`.`product_style` AS `product_style`,`products`.`product_type` AS `product_type`,`products`.`date_created` AS `date_created`,`products`.`pic_count` AS `pic_count` from (`products` join `client` on((`products`.`client_id` = `client`.`client_id`)))'):
+
+        format_date = str(a.get('date_created').year) + "-" + str(a.get('date_created').month) + "-" + str(a.get('date_created').day)
+        print(format_date)
+
