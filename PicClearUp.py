@@ -43,6 +43,14 @@ class PicClearUp_UI():
 with open("PicSizeinfo.json", 'r', encoding='utf-8') as json_file:
     picSizeinfo = json.load(json_file)
 
+#检查图片的icc信息
+def check_Pic(img):
+    try:
+        if 'icc_profile' not in img.info:
+            # print("\033[1;33;44m注意！%s没有icc信息\033[0m" % img.filename)
+            return False
+    except:
+        return True
 
 # 判断两个文件是否相同
 def diff(file_1, file_2):
@@ -104,9 +112,13 @@ def pic_filtrate(path):
         for file in files:
             if file.split('.')[-1].lower() == 'jpg':
                 # 处理*.jpg文件
+
                 with Image.open(os.path.join(root, file)) as img_pillow:
                     pic_size = get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
                     pic_type = get_pic_type(pic_size)  # 获得细分品类    返回值：元组(类型，尺寸)
+                    icc_info = check_Pic(img_pillow)
+                if icc_info:
+                    print(icc_info)
                 newFileName = os.path.join(root, file)[len(path) + 1:]  # 取得选择路径以后部分
                 newFileName = newFileName.replace('/', '-')  # 非windows系统路径扁平化
                 newFileName = newFileName.replace('\\', '-')  # windows系统路径扁平化
@@ -170,16 +182,4 @@ def pic_clear_up():
 
 
 if __name__ == '__main__':
-    op = PicClearUp_UI()
-    op.root.mainloop()  #显示获取路径窗体
-    f_path = op.path
-
-    error_info, count = pic_filtrate(f_path)
-    if error_info:
-        error_text = '错误信息'
-        for info in error_info:
-            error_text = error_text + "\n" + info
-        messagebox.showinfo("错误", error_text)
-    else:
-        messagebox.showinfo("成功", '共导检测到【' + str(count.get('count')) + '】张照片\n新添加【' + str(
-            count.get('copyright_count')) + '】张照片')
+    pic_clear_up()

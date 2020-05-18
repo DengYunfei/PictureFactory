@@ -199,7 +199,15 @@ class product():
         self.combination = self.get_combinationList()
 
     def check_Pic(self, path):
-        return True
+        try:
+            img = Image.open(path)
+            if 'icc_profile' not in img.info:
+                print("\033[1;33;44m注意！%s没有icc信息\033[0m" % img.filename)
+                ret = img.filename
+                return ret
+        except IOError:
+            print('IOERROR ' + path)
+
 
     def get_picSize(self, path):
         with Image.open(path) as pic:
