@@ -12,7 +12,7 @@ class PicClearUp_UI():
         self.root.title("图片分拣")
         self.root.attributes()
         self.root.geometry('480x120')
-        self.path =""
+        self.path = ""
         self.root.resizable(0, 0)  # 防止用户调整尺寸
         self._setpage()
 
@@ -31,6 +31,7 @@ class PicClearUp_UI():
 
     def chooseDir(self):
         Fpath = filedialog.askdirectory()
+        self.entry.delete(0, 'end')
         self.entry.insert(0, Fpath)
 
     def enterPath(self):
@@ -38,19 +39,20 @@ class PicClearUp_UI():
         self.root.destroy()
 
 
-# 加载尺寸信息
 # 读取尺寸描述文件
 with open("PicSizeinfo.json", 'r', encoding='utf-8') as json_file:
     picSizeinfo = json.load(json_file)
 
-#检查图片的icc信息
+
+# 检查图片的icc信息
 def check_Pic(img):
     try:
         if 'icc_profile' not in img.info:
-            # print("\033[1;33;44m注意！%s没有icc信息\033[0m" % img.filename)
-            return False
+            # txt = "%s没有icc信息" % img.filename
+            return img.filename
     except:
-        return True
+        return False
+
 
 # 判断两个文件是否相同
 def diff(file_1, file_2):
@@ -160,15 +162,16 @@ def pic_filtrate(path):
     counts = {'count': count, 'copyright_count': copyright_count}
     return error_info, counts
 
+
 def pic_clear_up():
     op = PicClearUp_UI()
     op.root.mainloop()  # 显示获取路径窗体
-    #判断用户有无输入路径
+    # 判断用户有无输入路径
     if op.path:
-        #有路径信息
+        # 有路径信息
         fpath = op.path
     else:
-        #无路径信息，退出方法
+        # 无路径信息，退出方法
         return
     error_info, count = pic_filtrate(fpath)
     if error_info:
