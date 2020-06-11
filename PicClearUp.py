@@ -7,20 +7,21 @@ from tkinter import filedialog
 
 
 class PicClearUp_UI():
-    def __init__(self):
+    def __init__(self, path=""):
         self.root = tk.Tk()
         self.root.title("图片分拣")
         self.root.attributes()
         self.root.geometry('480x120')
-        self.path = ""
+        self.path = path
         self.root.resizable(0, 0)  # 防止用户调整尺寸
         self._setpage()
+        print(self.path)
 
     def _setpage(self):
         self.label = tk.Label(self.root, text='请选择日期文件夹', anchor="w")
         self.btn1 = tk.Button(self.root, text='...', command=self.chooseDir)
         self.btn2 = tk.Button(self.root, text='确认', command=self.enterPath)
-        self.entry = tk.Entry(self.root)
+        self.entry = tk.Entry(self.root, textvariable=tk.StringVar(value=self.path))
 
         # 绘制窗口控件
 
@@ -103,6 +104,7 @@ def pic_filtrate(path):
 
     mk_dir(path, '分拣')
     copyright_count = 0
+    erorr_count = 0
     error_info = []
     mk_dir(path, '分拣')
     # 遍历指定路径下所有jpg文件
@@ -120,7 +122,11 @@ def pic_filtrate(path):
                     pic_type = get_pic_type(pic_size)  # 获得细分品类    返回值：元组(类型，尺寸)
                     icc_info = check_Pic(img_pillow)
                 if icc_info:
-                    print(icc_info)
+                    print(icc_info, '没有icc信息')
+                    error_info.append({'path': icc_info, 'info': '没有icc信息'})
+                    erorr_count += 1
+                    break
+
                 newFileName = os.path.join(root, file)[len(path) + 1:]  # 取得选择路径以后部分
                 newFileName = newFileName.replace('/', '-')  # 非windows系统路径扁平化
                 newFileName = newFileName.replace('\\', '-')  # windows系统路径扁平化
@@ -156,15 +162,16 @@ def pic_filtrate(path):
                         copyright_count += 1
                     except:
                         # 移动失败
-                        error_info.append(path.join(root, file))
+                        error_info.append({'path': path.join(root, file), 'info': '拷贝失败'})
+                        erorr_count += 1
                         print('拷贝', os.path.join(root, file), '失败')
 
-    counts = {'count': count, 'copyright_count': copyright_count}
+    counts = {'count': count, 'copyright_count': copyright_count, 'erorr_count': erorr_count}
     return error_info, counts
 
 
-def pic_clear_up():
-    op = PicClearUp_UI()
+def pic_clear_up(path=""):
+    op = PicClearUp_UI(path)
     op.root.mainloop()  # 显示获取路径窗体
     # 判断用户有无输入路径
     if op.path:
@@ -173,16 +180,28 @@ def pic_clear_up():
     else:
         # 无路径信息，退出方法
         return
-    error_info, count = pic_filtrate(fpath)
+    error_info, counts = pic_filtrate(fpath)
+    # 反馈运行结果
+    messagebox.showinfo("成功", '共导检测到【' + str(counts.get('count')) + '】张照片\n新添加【' + str(
+        counts.get('copyright_count')) + '】张照片\n包含错误【' + str(counts.get('erorr_count')) + '】个错误')
+    # 反馈错误信息
     if error_info:
         error_text = '错误信息'
+        count = 1
         for info in error_info:
-            error_text = error_text + "\n" + info
+            error_text = error_text + '\t' + str(count) + '/' + str(counts.get('erorr_count')) + "\n" + info.get(
+                'path') + "\n" + info.get('info')
+            count += 1
         messagebox.showinfo("错误", error_text)
-    else:
-        messagebox.showinfo("成功", '共导检测到【' + str(count.get('count')) + '】张照片\n新添加【' + str(
-            count.get('copyright_count')) + '】张照片')
 
 
 if __name__ == '__main__':
-    pic_clear_up()
+
+    # #win_test
+    # path = ""
+    #mac_test
+    path = "/Users/dengyunfei/Public/照片接收/2020.06.06/赵思宇"
+    try:
+        pic_clear_up(path)
+    except:
+        pic_clear_up()
