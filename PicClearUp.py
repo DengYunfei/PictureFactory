@@ -125,7 +125,7 @@ def pic_filtrate(path):
                     print(icc_info, '没有icc信息')
                     error_info.append({'path': icc_info, 'info': '没有icc信息'})
                     erorr_count += 1
-                    break
+                    continue
 
                 newFileName = os.path.join(root, file)[len(path) + 1:]  # 取得选择路径以后部分
                 newFileName = newFileName.replace('/', '-')  # 非windows系统路径扁平化
@@ -189,7 +189,7 @@ def pic_clear_up(path=""):
         error_text = '错误信息'
         count = 1
         for info in error_info:
-            error_text = error_text + '\t' + str(count) + '/' + str(counts.get('erorr_count')) + "\n" + info.get(
+            error_text = error_text + '\n' + str(count) + '/' + str(counts.get('erorr_count')) + "\n" + info.get(
                 'path') + "\n" + info.get('info')
             count += 1
         messagebox.showinfo("错误", error_text)
@@ -199,8 +199,8 @@ if __name__ == '__main__':
 
     # #win_test
     # path = ""
-    #mac_test
-    path = "/Users/dengyunfei/Public/照片接收/2020.06.06/赵思宇"
+    # #mac_test
+    # path = "/Users/dengyunfei/Public/照片接收/2020.06.06/赵思宇"
     try:
         pic_clear_up(path)
     except:
