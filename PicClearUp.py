@@ -170,16 +170,20 @@ def pic_filtrate(path):
     return error_info, counts
 
 
-def pic_clear_up(path=""):
+def get_input_path(path=""):
     op = PicClearUp_UI(path)
     op.root.mainloop()  # 显示获取路径窗体
     # 判断用户有无输入路径
     if op.path:
         # 有路径信息
         fpath = op.path
+        return fpath
     else:
         # 无路径信息，退出方法
         return
+
+
+def pic_clear_up(fpath):
     error_info, counts = pic_filtrate(fpath)
     # 反馈运行结果
     messagebox.showinfo("成功", '共导检测到【' + str(counts.get('count')) + '】张照片\n新添加【' + str(
@@ -200,8 +204,10 @@ if __name__ == '__main__':
     # #win_test
     # path = ""
     # #mac_test
-    # path = "/Users/dengyunfei/Public/照片接收/2020.06.06/赵思宇"
+    path = "/Users/dengyunfei/Public/照片接收/2020.06.06/赵思宇"
     try:
-        pic_clear_up(path)
+        path =get_input_path(path)
     except:
-        pic_clear_up()
+        path =get_input_path()
+    if path:
+        pic_clear_up(path)
