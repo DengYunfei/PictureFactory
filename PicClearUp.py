@@ -45,16 +45,6 @@ with open("PicSizeinfo.json", 'r', encoding='utf-8') as json_file:
     picSizeinfo = json.load(json_file)
 
 
-# 检查图片的icc信息
-def check_Pic(img):
-    try:
-        if 'icc_profile' not in img.info:
-            # txt = "%s没有icc信息" % img.filename
-            return img.filename
-    except:
-        return False
-
-
 # 判断两个文件是否相同
 def diff(file_1, file_2):
     with open(file_1, 'rb') as file:
@@ -110,6 +100,7 @@ def pic_filtrate(path):
     # 遍历指定路径下所有jpg文件
     for root, dir, files in os.walk(path):
         # 快速跳出分拣目录
+        print(files)
         if re.search('分拣', root):
             continue
         picCuunt = len(files)  # 同品数量（相册P数）
@@ -120,12 +111,10 @@ def pic_filtrate(path):
                 with Image.open(os.path.join(root, file)) as img_pillow:
                     pic_size = get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
                     pic_type = get_pic_type(pic_size)  # 获得细分品类    返回值：元组(类型，尺寸)
-                    icc_info = check_Pic(img_pillow)
-                if icc_info:
-                    print(icc_info, '没有icc信息')
-                    error_info.append({'path': icc_info, 'info': '没有icc信息'})
-                    erorr_count += 1
-                    continue
+                    if not img_pillow.info.get('icc_profile'):
+                        with Image.open("img1.jpeg") as img_icc:
+                            img_pillow.save(os.path.join(root, file), 'jpeg',
+                                            icc_profile=img_icc.info.get('icc_profile'))
 
                 newFileName = os.path.join(root, file)[len(path) + 1:]  # 取得选择路径以后部分
                 newFileName = newFileName.replace('/', '-')  # 非windows系统路径扁平化
@@ -155,14 +144,18 @@ def pic_filtrate(path):
                     print(count, os.path.join(root, file), "没有改变。")
                 else:
                     # 文件不同 尝试移动文件
+                    print(os.path.join(savepath, img_pillow.filename))
+                    type(img_pillow)
+                    # img_pillow.save("new.jpg","jpeg")
                     try:
                         # 移动成功
                         copyfile(os.path.join(root, file), os.path.join(path, savepath, newFileName))
                         print(count, "文件已COPY到", os.path.join(path, savepath, newFileName))
+
                         copyright_count += 1
                     except:
                         # 移动失败
-                        error_info.append({'path': path.join(root, file), 'info': '拷贝失败'})
+                        error_info.append({'path': os.path.join(root, file), 'info': '拷贝失败'})
                         erorr_count += 1
                         print('拷贝', os.path.join(root, file), '失败')
 
@@ -204,10 +197,14 @@ if __name__ == '__main__':
     # #win_test
     # path = ""
     # #mac_test
-    path = "/Users/dengyunfei/Public/照片接收/2020.06.06/赵思宇"
+    path = "/Users/dengyunfei/Public/照片接收/2020.08.14/test"
     try:
-        path =get_input_path(path)
+        path = get_input_path(path)
     except:
-        path =get_input_path()
+        path = get_input_path()
     if path:
         pic_clear_up(path)
+    # with Image.open("img.jpg") as im:
+    #     icc_profile = im.info.get('icc_profile')
+    #     print(icc_profile)
+    # # im.save("img.jpg", 'jpeg', icc_profile=im.info.get('icc_profile'))

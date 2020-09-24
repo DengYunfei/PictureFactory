@@ -332,9 +332,9 @@ class pictureSorted():
         pass
 
 
-if __name__ == '__main__':
     pathList = ["/Users/dengyunfei/Public/PycharmProjects/2020.04.17/埃尔沃克/3.22 苏莉薪 选不看（金）"
                 ]
+if __name__ == '__main__':
     for path in pathList:
         user = pictureSorted(path)
     for user in user.userList:
