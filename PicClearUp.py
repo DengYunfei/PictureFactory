@@ -144,9 +144,6 @@ def pic_filtrate(path):
                     print(count, os.path.join(root, file), "没有改变。")
                 else:
                     # 文件不同 尝试移动文件
-                    print(os.path.join(savepath, img_pillow.filename))
-                    type(img_pillow)
-                    # img_pillow.save("new.jpg","jpeg")
                     try:
                         # 移动成功
                         copyfile(os.path.join(root, file), os.path.join(path, savepath, newFileName))
