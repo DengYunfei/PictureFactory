@@ -72,8 +72,11 @@ def mk_dir(path, file):
 
 # 获取图片的宽高数据
 def get_pic_size(img):
-    size = (img.width, img.height)
-    return size
+    dpi_1 = 254
+    dpi = img.info.get("dpi")
+    new_dpi = dpi_1 / dpi[0]
+    size = (img.width * new_dpi, img.height * new_dpi)
+    return size, dpi[0]
 
 
 # 获取图片宽高所对应的尺寸类别
@@ -100,7 +103,6 @@ def pic_filtrate(path):
     # 遍历指定路径下所有jpg文件
     for root, dir, files in os.walk(path):
         # 快速跳出分拣目录
-        print(files)
         if re.search('分拣', root):
             continue
         picCuunt = len(files)  # 同品数量（相册P数）
@@ -109,13 +111,17 @@ def pic_filtrate(path):
                 # 处理*.jpg文件
 
                 with Image.open(os.path.join(root, file)) as img_pillow:
-                    pic_size = get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
+
+                    pic_size, dpi_erorr = get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
+                    if dpi_erorr < 254:
+                        print(os.path.join(root, file), "DPI过小", dpi_erorr)
                     pic_type = get_pic_type(pic_size)  # 获得细分品类    返回值：元组(类型，尺寸)
                     if not img_pillow.info.get('icc_profile'):
                         with Image.open("img1.jpeg") as img_icc:
                             img_pillow.save(os.path.join(root, file), 'jpeg',
                                             icc_profile=img_icc.info.get('icc_profile'))
 
+                print('icc_profile', type(img_pillow.info.get('icc_profile')), img_pillow.info.get('icc_profile'))
                 newFileName = os.path.join(root, file)[len(path) + 1:]  # 取得选择路径以后部分
                 newFileName = newFileName.replace('/', '-')  # 非windows系统路径扁平化
                 newFileName = newFileName.replace('\\', '-')  # windows系统路径扁平化
