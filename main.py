@@ -15,12 +15,14 @@ class main_UI():
 
         self.btn1 = tk.Button(self.root, text='设置套系', command=self.set_meal)
         self.btn2 = tk.Button(self.root, text='图片分拣', command=self.pic_clear_up)
+        self.btn3 = tk.Button(self.root, text='图片裁剪', command=self.pic_clear_up)
         self.entry = tk.Entry(self.root)
 
         # 绘制窗口控件
 
         self.btn1.place(relx=0.05, rely=0.05, relwidth=0.4, relheight=0.2)
         self.btn2.place(relx=0.55, rely=0.05, relwidth=0.4, relheight=0.2)
+        self.btn3.place(relx=0.05, rely=0.3, relwidth=0.4, relheight=0.2)
 
     def set_meal(self):
         set_meal()

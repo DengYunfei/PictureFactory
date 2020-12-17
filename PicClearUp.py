@@ -45,16 +45,6 @@ with open("PicSizeinfo.json", 'r', encoding='utf-8') as json_file:
     picSizeinfo = json.load(json_file)
 
 
-# 检查图片的icc信息
-def check_Pic(img):
-    try:
-        if 'icc_profile' not in img.info:
-            # txt = "%s没有icc信息" % img.filename
-            return img.filename
-    except:
-        return False
-
-
 # 判断两个文件是否相同
 def diff(file_1, file_2):
     with open(file_1, 'rb') as file:
@@ -82,27 +72,32 @@ def mk_dir(path, file):
 
 # 获取图片的宽高数据
 def get_pic_size(img):
-    size = (img.width, img.height)
-    return size
+    dpi = img.info.get("dpi")
+
+    if not dpi:
+        dpi = (254, 254)
+    width = img.width / dpi[0] * 2.54
+    height = img.height / dpi[0] * 2.54
+    size = (width, height)
+
+    return size, dpi[0]
 
 
 # 获取图片宽高所对应的尺寸类别
 def get_pic_type(sized):
-    compensation = 50
+    compensation = 0.5
     for items in picSizeinfo:
         for size in picSizeinfo[items]:
-            if sized[0] > size["width"] - compensation and sized[0] < size["width"] + compensation:
-                if sized[1] > size["height"] - compensation and sized[1] < size["height"] + compensation:
-                    return items, size["name"]
+            if sized[0] > size.get("width") - compensation and sized[0] < size.get("width") + compensation:
+                if sized[1] > size.get("height") - compensation and sized[1] < size.get("height") + compensation:
+                    return items, size["name"], (size.get("width"), size.get("height"))
 
-    return "未知尺寸", str(sized[0]) + "x" + str(sized[1])
+    return "未知尺寸", str(sized[0]) + "x" + str(sized[1]), sized
 
 
 # 图片分拣主方法
 def pic_filtrate(path):
     count = 0
-
-    mk_dir(path, '分拣')
     copyright_count = 0
     erorr_count = 0
     error_info = []
@@ -112,22 +107,21 @@ def pic_filtrate(path):
         # 快速跳出分拣目录
         if re.search('分拣', root):
             continue
-        picCuunt = len(files)  # 同品数量（相册P数）
+        picCuunt = 0
+        # 同品数量（相册P数）
         for file in files:
             if file.split('.')[-1].lower() == 'jpg':
-                # 处理*.jpg文件
-
+                picCuunt += 1
+        #分拣图片
+        for file in files:
+            if file.split('.')[-1].lower() == 'jpg':
+                # 仅处理*.jpg文件
                 with Image.open(os.path.join(root, file)) as img_pillow:
-                    pic_size = get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
-                    pic_type = get_pic_type(pic_size)  # 获得细分品类    返回值：元组(类型，尺寸)
-                    icc_info = check_Pic(img_pillow)
-                if icc_info:
-                    print(icc_info, '没有icc信息')
-                    error_info.append({'path': icc_info, 'info': '没有icc信息'})
-                    erorr_count += 1
-                    continue
 
+                    pic_size, pic_dpi = get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
+                    pic_type = get_pic_type(pic_size)  # 获得细分品类    返回值：元组(类型，尺寸)
                 newFileName = os.path.join(root, file)[len(path) + 1:]  # 取得选择路径以后部分
+                print(newFileName)
                 newFileName = newFileName.replace('/', '-')  # 非windows系统路径扁平化
                 newFileName = newFileName.replace('\\', '-')  # windows系统路径扁平化
                 if pic_type[0] == "未知尺寸":
@@ -158,28 +152,33 @@ def pic_filtrate(path):
                     try:
                         # 移动成功
                         copyfile(os.path.join(root, file), os.path.join(path, savepath, newFileName))
-                        print(count, "文件已COPY到", os.path.join(path, savepath, newFileName))
+                        # print(count, "文件已COPY到", os.path.join(path, savepath, newFileName))
+
                         copyright_count += 1
                     except:
                         # 移动失败
-                        error_info.append({'path': path.join(root, file), 'info': '拷贝失败'})
+                        error_info.append({'path': os.path.join(root, file), 'info': '拷贝失败'})
                         erorr_count += 1
-                        print('拷贝', os.path.join(root, file), '失败')
+                        # print('拷贝', os.path.join(root, file), '失败')
 
     counts = {'count': count, 'copyright_count': copyright_count, 'erorr_count': erorr_count}
     return error_info, counts
 
 
-def pic_clear_up(path=""):
+def get_input_path(path=""):
     op = PicClearUp_UI(path)
     op.root.mainloop()  # 显示获取路径窗体
     # 判断用户有无输入路径
     if op.path:
         # 有路径信息
         fpath = op.path
+        return fpath
     else:
         # 无路径信息，退出方法
         return
+
+
+def pic_clear_up(fpath):
     error_info, counts = pic_filtrate(fpath)
     # 反馈运行结果
     messagebox.showinfo("成功", '共导检测到【' + str(counts.get('count')) + '】张照片\n新添加【' + str(
@@ -200,8 +199,10 @@ if __name__ == '__main__':
     # #win_test
     # path = ""
     # #mac_test
-    # path = "/Users/dengyunfei/Public/照片接收/2020.06.06/赵思宇"
+    path = "/Users/dengyunfei/Public/照片接收/11.29儿童"
     try:
-        pic_clear_up(path)
+        path = get_input_path(path)
     except:
-        pic_clear_up()
+        path = get_input_path()
+    if path:
+        pic_clear_up(path)
