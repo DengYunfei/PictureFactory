@@ -1,4 +1,4 @@
-import os, re, KeRen
+import os, re, KeRen, json
 from tkinter import messagebox
 import tkinter as tk
 from tkinter import filedialog
@@ -78,7 +78,11 @@ def pic_filtrate(path):
         if re.search('分拣', dir):
             continue
 
-        KeRen.Ke_ren(dir, os.path.join(path, dir))
+        ke_ren = KeRen.Ke_ren(dir, path)
+        chan_pin.append(ke_ren.ke_ren)
+    # print()
+    with open(os.path.join(path, '分拣', 'chan_pin.json'), 'w', encoding='utf-8') as json_file:
+        json.dump(chan_pin, json_file, ensure_ascii=False, indent=4)
 
 
 def get_input_path(path=""):

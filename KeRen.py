@@ -8,22 +8,26 @@ with open("PicSizeinfo.json", 'r', encoding='utf-8') as json_file:
 
 
 class Ke_ren():
-    def __init__(self, dir, path):
+    def __init__(self, u_dir, u_path):
         self.chan_pin = []
-        self.ke_ren = {"名称": dir, "收件日期": time.strftime("%Y/%m/%d", time.localtime()), "产品列表": self.chan_pin}
-        print("mainpath", self.ke_ren)
-        self.path = path
-        self.mainpath = path[:-len(dir)]
+        self.path = u_path
+        self.dir = u_dir
+        # self.mainpath = u_path[:-len(u_dir)]
         # print("mainpath", self.mainpath)
+        self.qing_di_zhi = ""
         self.Fen_jian()
+        self.ke_ren = {"名称": u_dir, "收件日期": time.strftime("%Y/%m/%d", time.localtime()), "产品列表": self.chan_pin}
+        # print("mainpath", self.ke_ren)
 
     def Fen_jian(self):
         count = 0
         copyright_count = 0
         erorr_count = 0
         error_info = []
-        picCuunt = 0
-        for root, dirs, files in os.walk(self.path):
+        self.chan_pin = []
+        for root, dirs, files in os.walk(os.path.join(self.path, self.dir)):
+            picCuunt = 0
+            self.root = os.path.split(root)
             # 同品数量（相册P数）
             for file in files:
                 if file.split('.')[-1].lower() == 'jpg':
@@ -36,40 +40,24 @@ class Ke_ren():
 
                         pic_size, pic_dpi = self.get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
                         pic_type = self.get_pic_type(pic_size)  # 获得细分品类    返回值：元组(类型，尺寸)
-                    newFileName = os.path.join(root, file)[len(root) + 1:]  # 取得选择路径以后部分
-                    # print("root",root)
+                    newFileName = os.path.join(root, file)[len(self.path) + 1:]  # 取得选择路径以后部分
+                    print("root", root)
                     print("newFileName", newFileName)
-                    newFileName = newFileName.replace('/', '-')  # 非windows系统路径扁平化
+                    newFileName = newFileName.replace('/', '-')  # 非windows统路径扁平化
                     newFileName = newFileName.replace('\\', '-')  # windows系统路径扁平化
-                    if pic_type[0] == "未知尺寸":
-                        # 未知尺寸产品处理
-                        PicClearUp.mk_dir(os.path.join(self.mainpath, '分拣'), pic_type[0])
-                        savepath = os.path.join(self.mainpath, '分拣', pic_type[0])
-                    elif pic_type[0] == "相册":
-                        # 相册产品处理
-                        newFileNameList = newFileName.split("-")
-                        newFileNameList[-1] = "★" + newFileNameList[-1]
-                        newFileName = "-".join(newFileNameList)
-                        newFileName = newFileName[:-4] + "_" + str(picCuunt) + ".jpg"
-                        # print('type：',PicSize[0])
 
-                        PicClearUp.mk_dir(os.path.join(self.mainpath, '分拣'), pic_type[1])
-                        savepath = os.path.join(self.mainpath, '分拣', pic_type[1])
-                    else:
-                        # 其他产品处理
-                        PicClearUp.mk_dir(os.path.join(self.mainpath, '分拣'), pic_type[0])
-                        savepath = os.path.join(self.mainpath, '分拣', pic_type[0])
-                        newFileName = pic_type[1] + '-' + newFileName
-
+                    savepath, newFileName = self.Fen_lei(pic_type, newFileName, picCuunt)
                     count += 1  # 计数器增加1
-                    if self.diff(os.path.join(root, file), os.path.join(self.mainpath, savepath, newFileName)):
+                    self.qing_di_zhi = os.path.split(root)
+                    # print("qing_di_zhi", self.qing_di_zhi)
+                    if self.diff(os.path.join(root, file), os.path.join(self.path, savepath, newFileName)):
                         print(count, os.path.join(root, file), "没有改变。")
                     else:
                         # 文件不同 尝试移动文件
                         try:
                             # 移动成功
-                            copyfile(os.path.join(root, file), os.path.join(self.mainpath, savepath, newFileName))
-                            print(count, "文件已COPY到", os.path.join(self.mainpath, savepath, newFileName))
+                            copyfile(os.path.join(root, file), os.path.join(self.path, savepath, newFileName))
+                            print(count, "文件已COPY到", os.path.join(self.path, savepath, newFileName))
 
                             copyright_count += 1
                         except:
@@ -77,7 +65,6 @@ class Ke_ren():
                             error_info.append({'path': os.path.join(root, file), 'info': '拷贝失败'})
                             erorr_count += 1
                             print('拷贝', os.path.join(root, file), '失败')
-
         counts = {'count': count, 'copyright_count': copyright_count, 'erorr_count': erorr_count}
         return error_info, counts
 
@@ -117,3 +104,50 @@ class Ke_ren():
             file_2_md5 = ""
         if file_1_md5 == file_2_md5:
             return True
+
+    # 图片产品分类
+    def Fen_lei(self, pic_type, newFileName, picCuunt):
+        if pic_type[0] == "未知尺寸":
+            # 未知尺寸产品处理
+            PicClearUp.mk_dir(os.path.join(self.path, '分拣'), pic_type[0])
+            savepath = os.path.join(self.path, '分拣', pic_type[0])
+            self.chan_pin.append(
+                {"类型": pic_type[0], "尺寸": pic_type[1], "数量": picCuunt,
+                 "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
+        elif pic_type[0] == "相册":
+            # 相册产品处理
+            newFileNameList = newFileName.split("-")
+            newFileNameList[-1] = "★" + newFileNameList[-1]
+            newFileName = "-".join(newFileNameList)
+            newFileName = newFileName[:-4] + "_" + str(picCuunt) + ".jpg"
+            # print('type：',PicSize[0])
+
+            PicClearUp.mk_dir(os.path.join(self.path, '分拣'), pic_type[1])
+            savepath = os.path.join(self.path, '分拣', pic_type[1])
+            if not self.qing_di_zhi == self.root:
+                self.chan_pin.append(
+                    {"类型": pic_type[0], "尺寸": pic_type[1], "数量": picCuunt,
+                     "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
+            else:
+                self.chan_pin[-1].get("图片列表").append(os.path.join(self.path, '分拣', pic_type[0], newFileName))
+
+        elif pic_type[0] == "台历":
+            PicClearUp.mk_dir(os.path.join(self.path, '分拣'), pic_type[0])
+            savepath = os.path.join(self.path, '分拣', pic_type[0])
+            newFileName = pic_type[1] + '-' + newFileName
+            if not self.qing_di_zhi == self.root:
+                self.chan_pin.append(
+                    {"类型": pic_type[0], "尺寸": pic_type[1], "数量": picCuunt,
+                     "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
+            else:
+                self.chan_pin[-1].get("图片列表").append(os.path.join(self.path, '分拣', pic_type[0], newFileName))
+
+        else:
+            # 其他产品处理
+            PicClearUp.mk_dir(os.path.join(self.path, '分拣'), pic_type[0])
+            savepath = os.path.join(self.path, '分拣', pic_type[0])
+            newFileName = pic_type[1] + '-' + newFileName
+            self.chan_pin.append(
+                {"类型": pic_type[0], "尺寸": pic_type[1], "数量": picCuunt,
+                 "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
+        return savepath, newFileName
