@@ -1,98 +1,114 @@
 {
     "相册": [{
             "name": "方8",
-            "width": 40,
-            "height": 20
+            "width": 4000,
+            "height": 2000
         }, {
             "name": "方10",
-            "width": 50,
-            "height": 25
+            "width": 5000,
+            "height": 2500
         }, {
             "name": "窄8",
-            "width": 30.4,
-            "height": 20.2
+            "width": 3040,
+            "height": 2000
         }, {
+            "name": "窄8-300dpi",
+            "width": 3591,
+            "height": 2409
+        },{
             "name": "8寸琉璃",
-            "width": 31,
-            "height": 20
+            "width": 3100,
+            "height": 2000
         }, {
             "name": "8寸琉璃-封面",
-            "width": 16,
-            "height": 21
+            "width": 1600,
+            "height": 2100
         }, {
             "name": "16寸竖版",
-            "width": 50,
-            "height": 37
+            "width": 5000,
+            "height": 3700
+        }, {
+            "name": "12寸琉璃",
+            "width": 4100,
+            "height": 3000
+        }, {
+            "name": "12寸琉璃-300dpi",
+            "width": 4843,
+            "height": 3543
+        }, {
+            "name": "12寸琉璃-封面",
+            "width": 2100,
+            "height": 3100
         }
     ],
     "摆台": [{
             "name": "7寸-竖",
-            "width": 12.50,
-            "height": 17.50
+            "width": 1250,
+            "height": 1750
         }, {
             "name": "8寸-竖",
-            "width": 15.50,
-            "height": 20.50
+            "width": 1550,
+            "height": 2050
         }, {
             "name": "10寸-竖",
-            "width": 20.50,
-            "height": 25.50
+            "width": 2050,
+            "height": 2550
         },{
             "name": "7寸-横",
-            "height": 12.50,
+            "height": 1250,
             "width": 1750
         }, {
             "name": "8寸-横",
-            "height": 15.50,
-            "width": 20.50
+            "height": 1550,
+            "width": 2050
         }, {
             "name": "10寸-横",
-            "height": 20.50,
-            "width": 25.50
+            "height": 2050,
+            "width": 2550
         }
     ],
     "放大": [ {
             "name": "20寸-竖",
-            "width": 30.00,
-            "height": 40.00
+            "width": 3010,
+            "height": 4000
         }, {
             "name": "24寸-竖",
-            "width": 50.00,
-            "height": 60.00
+            "width": 5000,
+            "height": 6000
         }, {
             "name": "窄30寸-竖",
-            "width": 46,
-            "height": 69
+            "width": 4600,
+            "height": 6900
         }, {
             "name": "32寸-竖",
-            "width": 57,
-            "height": 71
+            "width": 5700,
+            "height": 7100
         }, {
             "name": "20寸-横",
-            "height": 30,
-            "width": 40
+            "height": 3010,
+            "width": 4000
         }, {
             "name": "24寸-横",
-            "height": 50,
-            "width": 60
+            "height": 5000,
+            "width": 6000
         }, {
             "name": "窄30寸-横",
-            "height": 46,
-            "width": 69
+            "height": 4600,
+            "width": 6900
         }, {
             "name": "32寸-横",
-            "height": 57,
-            "width": 71
+            "height": 5700,
+            "width": 7100
         }
     ],
     "台历": [ {
             "name": "8寸",
-            "width": 17.5,
-            "height": 12.5
+            "width": 1750,
+            "height": 1250
         }, {
             "name": "12寸",
-            "width": 25,
-            "height": 20
+            "width": 2500,
+            "height": 2000
         }
     ]
 }

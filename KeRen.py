@@ -11,7 +11,7 @@ class Ke_ren():
     def __init__(self, u_dir, u_path):
         self.chan_pin = []
         self.path = u_path
-        self.dir = u_dir
+        self.dir = os.walk(os.path.join(self.path, u_dir))
         # self.mainpath = u_path[:-len(u_dir)]
         # print("mainpath", self.mainpath)
         self.qing_di_zhi = ""
@@ -25,7 +25,7 @@ class Ke_ren():
         erorr_count = 0
         error_info = []
         self.chan_pin = []
-        for root, dirs, files in os.walk(os.path.join(self.path, self.dir)):
+        for root, dirs, files in self.dir:
             picCuunt = 0
             self.root = os.path.split(root)
             # 同品数量（相册P数）
