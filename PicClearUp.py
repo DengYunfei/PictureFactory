@@ -5,26 +5,6 @@ from tkinter import filedialog
 
 chan_pin = []
 
-'''
-[
-  {
-    "客人名": "",
-    "收件日期": "",
-    "产品列表": [
-      {
-        "类型": "",
-        "尺寸": "",
-        "数量": "",
-        "图列表": [
-          "图名"
-        ]
-      }
-    ]
-  }
-]
-'''
-
-
 class PicClearUp_UI():
     def __init__(self, path=""):
         self.root = tk.Tk()
@@ -72,6 +52,10 @@ def mk_dir(path, file):
 # 图片分拣主方法
 def pic_filtrate(path):
     mk_dir(path, '分拣')
+    error_info=[]
+    count = 0
+    CopyRight_count = 0
+    CopyError_count = 0
     # 遍历指定路径下所有jpg文件
     for dir in os.listdir(path):
         # 快速跳出分拣目录
@@ -79,11 +63,16 @@ def pic_filtrate(path):
             continue
 
         ke_ren = KeRen.Ke_ren(dir, path)
+        count += ke_ren.count
+        CopyRight_count += ke_ren.CopyRight_count
+        CopyError_count += ke_ren.CopyError_count
         chan_pin.append(ke_ren.ke_ren)
+
     # print()
     with open(os.path.join(path, '分拣', 'chan_pin.json'), 'w', encoding='utf-8') as json_file:
         json.dump(chan_pin, json_file, ensure_ascii=False, indent=4)
-
+    counts={"count":count,"CopyRight_count":CopyRight_count,"CopyError_count":CopyError_count}
+    return error_info, counts
 
 def get_input_path(path=""):
     op = PicClearUp_UI(path)
@@ -98,20 +87,20 @@ def get_input_path(path=""):
         return
 
 
-# def pic_clear_up(fpath):
-# error_info, counts = pic_filtrate(fpath)
-# 反馈运行结果
-# messagebox.showinfo("成功", '共导检测到【' + str(counts.get('count')) + '】张照片\n新添加【' + str(
-#     counts.get('copyright_count')) + '】张照片\n包含错误【' + str(counts.get('erorr_count')) + '】个错误')
-# # 反馈错误信息
-# if error_info:
-#     error_text = '错误信息'
-#     count = 1
-#     for info in error_info:
-#         error_text = error_text + '\n' + str(count) + '/' + str(counts.get('erorr_count')) + "\n" + info.get(
-#             'path') + "\n" + info.get('info')
-#         count += 1
-#     messagebox.showinfo("错误", error_text)
+def pic_clear_up(fpath):
+    error_info, counts = pic_filtrate(fpath)
+    # 反馈运行结果
+    messagebox.showinfo("成功", '共导检测到【' + str(counts.get('count')) + '】张照片\n新添加【' + str(
+    counts.get('CopyRight_count')) + '】张照片\n包含错误【' + str(counts.get('CopyError_count')) + '】个错误')
+# 反馈错误信息
+    if error_info:
+        error_text = '错误信息'
+        count = 1
+        for info in error_info:
+            error_text = error_text + '\n' + str(count) + '/' + str(counts.get('CopyError_count')) + "\n" + info.get(
+                'path') + "\n" + info.get('info')
+            count += 1
+        messagebox.showinfo("错误", error_text)
 
 
 if __name__ == '__main__':
@@ -125,4 +114,4 @@ if __name__ == '__main__':
     except:
         path = get_input_path()
     if path:
-        pic_filtrate(path)
+        pic_clear_up(path)

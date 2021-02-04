@@ -20,10 +20,10 @@ class Ke_ren():
         # print("mainpath", self.ke_ren)
 
     def Fen_jian(self):
-        count = 0
-        copyright_count = 0
-        erorr_count = 0
-        error_info = []
+        self.count = 0
+        self.CopyRight_count = 0
+        self.CopyError_count = 0
+        self.error_info = []
         self.chan_pin = []
         for root, dirs, files in self.dir:
             picCuunt = 0
@@ -47,26 +47,24 @@ class Ke_ren():
                     newFileName = newFileName.replace('\\', '-')  # windows系统路径扁平化
 
                     savepath, newFileName = self.Fen_lei(pic_type, newFileName, picCuunt)
-                    count += 1  # 计数器增加1
+                    self.count += 1  # 计数器增加1
                     self.qing_di_zhi = os.path.split(root)
                     # print("qing_di_zhi", self.qing_di_zhi)
                     if self.diff(os.path.join(root, file), os.path.join(self.path, savepath, newFileName)):
-                        print(count, os.path.join(root, file), "没有改变。")
+                        print(self.count, os.path.join(root, file), "没有改变。")
                     else:
                         # 文件不同 尝试移动文件
                         try:
                             # 移动成功
                             copyfile(os.path.join(root, file), os.path.join(self.path, savepath, newFileName))
-                            print(count, "文件已COPY到", os.path.join(self.path, savepath, newFileName))
+                            print(self.count, "文件已COPY到", os.path.join(self.path, savepath, newFileName))
 
-                            copyright_count += 1
+                            self.CopyRight_count += 1
                         except:
                             # 移动失败
-                            error_info.append({'path': os.path.join(root, file), 'info': '拷贝失败'})
-                            erorr_count += 1
+                            self.error_info.append({'path': os.path.join(root, file), 'info': '拷贝失败'})
+                            self.CopyError_count += 1
                             print('拷贝', os.path.join(root, file), '失败')
-        counts = {'count': count, 'copyright_count': copyright_count, 'erorr_count': erorr_count}
-        return error_info, counts
 
     # 获取图片的宽高数据
     def get_pic_size(self, img):
