@@ -11,7 +11,7 @@ class Ke_ren():
     def __init__(self, u_dir, u_path):
         self.chan_pin = []
         self.path = u_path
-        self.dir = os.walk(os.path.join(self.path, u_dir))
+        self.dir = os.path.join(self.path, u_dir)
         # self.mainpath = u_path[:-len(u_dir)]
         # print("mainpath", self.mainpath)
         self.qing_di_zhi = ""
@@ -25,46 +25,56 @@ class Ke_ren():
         self.CopyError_count = 0
         self.error_info = []
         self.chan_pin = []
-        for root, dirs, files in self.dir:
-            picCuunt = 0
-            self.root = os.path.split(root)
-            # 同品数量（相册P数）
-            for file in files:
-                if file.split('.')[-1].lower() == 'jpg':
-                    picCuunt += 1
-            # 分拣图片
-            for file in files:
-                if file.split('.')[-1].lower() == 'jpg':
-                    # 仅处理*.jpg文件
-                    with Image.open(os.path.join(root, file)) as img_pillow:
+        if os.path.isfile(self.dir):
+            if self.dir.split('.')[-1].lower() == 'jpg':
+                self.picCount = 1
+                self.Img_ChuLi(self.dir)
+        else:
+            for root, dirs, files in os.walk(self.dir):
+                self.picCount = 0
+                self.root = os.path.split(root)
+                # 同品数量（相册P数）
+                for file in files:
+                    if file.split('.')[-1].lower() == 'jpg':
+                        self.picCount += 1
+                # 分拣图片
+                for file in files:
+                    if file.split('.')[-1].lower() == 'jpg':
+                        # 仅处理*.jpg文件
+                        self.Img_ChuLi(os.path.join(root, file))
 
-                        pic_size, pic_dpi = self.get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
-                        pic_type = self.get_pic_type(pic_size)  # 获得细分品类    返回值：元组(类型，尺寸)
-                    newFileName = os.path.join(root, file)[len(self.path) + 1:]  # 取得选择路径以后部分
-                    print("root", root)
-                    print("newFileName", newFileName)
-                    newFileName = newFileName.replace('/', '-')  # 非windows统路径扁平化
-                    newFileName = newFileName.replace('\\', '-')  # windows系统路径扁平化
+    # 处理图片去向
+    def Img_ChuLi(self, file):
+        root = os.path.split(file)[0]
+        with Image.open(file) as img_pillow:
+            pic_size, pic_dpi = self.get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
+            pic_type = self.get_pic_type(pic_size)  # 获得细分品类    返回值：元组(类型，尺寸)
+        newFileName = file[len(self.path) + 1:]  # 取得选择路径以后部分
+        # print("root", root)
+        newFileName = newFileName.replace('/', '-')  # 非windows统路径扁平化
+        newFileName = newFileName.replace('\\', '-')  # windows系统路径扁平化
 
-                    savepath, newFileName = self.Fen_lei(pic_type, newFileName, picCuunt)
-                    self.count += 1  # 计数器增加1
-                    self.qing_di_zhi = os.path.split(root)
-                    # print("qing_di_zhi", self.qing_di_zhi)
-                    if self.diff(os.path.join(root, file), os.path.join(self.path, savepath, newFileName)):
-                        print(self.count, os.path.join(root, file), "没有改变。")
-                    else:
-                        # 文件不同 尝试移动文件
-                        try:
-                            # 移动成功
-                            copyfile(os.path.join(root, file), os.path.join(self.path, savepath, newFileName))
-                            print(self.count, "文件已COPY到", os.path.join(self.path, savepath, newFileName))
+        savepath, newFileName = self.Fen_lei(pic_type, newFileName)
 
-                            self.CopyRight_count += 1
-                        except:
-                            # 移动失败
-                            self.error_info.append({'path': os.path.join(root, file), 'info': '拷贝失败'})
-                            self.CopyError_count += 1
-                            print('拷贝', os.path.join(root, file), '失败')
+        # print("newFileName", newFileName)
+        self.count += 1  # 计数器增加1
+        self.qing_di_zhi = os.path.split(root)
+        # print("qing_di_zhi", self.qing_di_zhi)
+        if self.diff(os.path.join(root, file), os.path.join(self.path, savepath, newFileName)):
+            print(self.count, os.path.join(root, newFileName), "没有改变。")
+        else:
+            # 文件不同 尝试移动文件
+            try:
+                # 移动成功
+                copyfile(os.path.join(root, file), os.path.join(self.path, savepath, newFileName))
+                print(self.count, "文件已COPY到", os.path.join(self.path, savepath, newFileName))
+
+                self.CopyRight_count += 1
+            except:
+                # 移动失败
+                self.error_info.append({'path': os.path.join(root, file), 'info': '拷贝失败'})
+                self.CopyError_count += 1
+                print('拷贝', os.path.join(root, file), '失败')
 
     # 获取图片的宽高数据
     def get_pic_size(self, img):
@@ -104,27 +114,27 @@ class Ke_ren():
             return True
 
     # 图片产品分类
-    def Fen_lei(self, pic_type, newFileName, picCuunt):
+    def Fen_lei(self, pic_type, newFileName):
         if pic_type[0] == "未知尺寸":
             # 未知尺寸产品处理
             PicClearUp.mk_dir(os.path.join(self.path, '分拣'), pic_type[0])
             savepath = os.path.join(self.path, '分拣', pic_type[0])
             self.chan_pin.append(
-                {"类型": pic_type[0], "尺寸": pic_type[1], "数量": picCuunt,
+                {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
                  "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
         elif pic_type[0] == "相册":
             # 相册产品处理
             newFileNameList = newFileName.split("-")
             newFileNameList[-1] = "★" + newFileNameList[-1]
             newFileName = "-".join(newFileNameList)
-            newFileName = newFileName[:-4] + "_" + str(picCuunt) + ".jpg"
+            newFileName = newFileName[:-4] + "_" + str(self.picCount) + ".jpg"
             # print('type：',PicSize[0])
 
             PicClearUp.mk_dir(os.path.join(self.path, '分拣'), pic_type[1])
             savepath = os.path.join(self.path, '分拣', pic_type[1])
             if not self.qing_di_zhi == self.root:
                 self.chan_pin.append(
-                    {"类型": pic_type[0], "尺寸": pic_type[1], "数量": picCuunt,
+                    {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
                      "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
             else:
                 self.chan_pin[-1].get("图片列表").append(os.path.join(self.path, '分拣', pic_type[0], newFileName))
@@ -135,7 +145,7 @@ class Ke_ren():
             newFileName = pic_type[1] + '-' + newFileName
             if not self.qing_di_zhi == self.root:
                 self.chan_pin.append(
-                    {"类型": pic_type[0], "尺寸": pic_type[1], "数量": picCuunt,
+                    {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
                      "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
             else:
                 self.chan_pin[-1].get("图片列表").append(os.path.join(self.path, '分拣', pic_type[0], newFileName))
@@ -146,6 +156,6 @@ class Ke_ren():
             savepath = os.path.join(self.path, '分拣', pic_type[0])
             newFileName = pic_type[1] + '-' + newFileName
             self.chan_pin.append(
-                {"类型": pic_type[0], "尺寸": pic_type[1], "数量": picCuunt,
+                {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
                  "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
         return savepath, newFileName
