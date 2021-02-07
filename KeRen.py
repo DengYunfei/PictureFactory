@@ -49,6 +49,7 @@ class Ke_ren():
         with Image.open(file) as img_pillow:
             pic_size, pic_dpi = self.get_pic_size(img_pillow)  # 获得图片宽高    返回值：元组(宽，高)
             pic_type = self.get_pic_type(pic_size)  # 获得细分品类    返回值：元组(类型，尺寸)
+            # img_pillow.show()
         newFileName = file[len(self.path) + 1:]  # 取得选择路径以后部分
         # print("root", root)
         newFileName = newFileName.replace('/', '-')  # 非windows统路径扁平化
@@ -121,7 +122,8 @@ class Ke_ren():
             savepath = os.path.join(self.path, '分拣', pic_type[0])
             self.chan_pin.append(
                 {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
-                 "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
+                 "保存位置": os.path.join(self.path, '分拣', pic_type[0]),
+                 "图片列表": [newFileName]})
         elif pic_type[0] == "相册":
             # 相册产品处理
             newFileNameList = newFileName.split("-")
@@ -135,9 +137,10 @@ class Ke_ren():
             if not self.qing_di_zhi == self.root:
                 self.chan_pin.append(
                     {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
-                     "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
+                     "保存位置": os.path.join(self.path, '分拣', pic_type[0]),
+                     "图片列表": [newFileName]})
             else:
-                self.chan_pin[-1].get("图片列表").append(os.path.join(self.path, '分拣', pic_type[0], newFileName))
+                self.chan_pin[-1].get("图片列表").append(newFileName)
 
         elif pic_type[0] == "台历":
             PicClearUp.mk_dir(os.path.join(self.path, '分拣'), pic_type[0])
@@ -146,9 +149,10 @@ class Ke_ren():
             if not self.qing_di_zhi == self.root:
                 self.chan_pin.append(
                     {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
-                     "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
+                     "保存位置": os.path.join(self.path, '分拣', pic_type[0]),
+                     "图片列表": [newFileName]})
             else:
-                self.chan_pin[-1].get("图片列表").append(os.path.join(self.path, '分拣', pic_type[0], newFileName))
+                self.chan_pin[-1].get("图片列表").append(newFileName)
 
         else:
             # 其他产品处理
@@ -157,5 +161,6 @@ class Ke_ren():
             newFileName = pic_type[1] + '-' + newFileName
             self.chan_pin.append(
                 {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
-                 "图片列表": [os.path.join(self.path, '分拣', pic_type[0], newFileName)]})
+                 "保存位置": os.path.join(self.path, '分拣', pic_type[0]),
+                 "图片列表": [newFileName]})
         return savepath, newFileName
