@@ -1,10 +1,10 @@
-import os, re, KeRen, json
+import os, re, KeRen, json, csv
 from tkinter import messagebox
 import tkinter as tk
 from tkinter import filedialog
 
 chan_pin = []
-
+chan_pin_csv = []
 class PicClearUp_UI():
     def __init__(self, path=""):
         self.root = tk.Tk()
@@ -67,8 +67,16 @@ def pic_filtrate(path):
         CopyRight_count += ke_ren.CopyRight_count
         CopyError_count += ke_ren.CopyError_count
         chan_pin.append(ke_ren.ke_ren)
+        chan_pin_csv.append(ke_ren.csvList)
+        # print(ke_ren.csvList)
 
     # print()
+    with open(os.path.join(path, '分拣', 'chan_pin.csv'), 'w', encoding='gbk') as csv_file:
+        writer = csv.writer(csv_file)
+        for i in chan_pin_csv:
+            for j in i:
+                writer.writerow(j)
+
     with open(os.path.join(path, '分拣', 'chan_pin.json'), 'w', encoding='utf-8') as json_file:
         json.dump(chan_pin, json_file, ensure_ascii=False, indent=4)
     counts={"count":count,"CopyRight_count":CopyRight_count,"CopyError_count":CopyError_count}
@@ -108,7 +116,7 @@ if __name__ == '__main__':
     # #win_test
     # path = ""
     # #mac_test
-    path = "/Users/dengyunfei/Public/照片接收/11.29儿童"
+    path = "/Users/dengyunfei/Public/照片接收/未命名文件夹"
     try:
         path = get_input_path(path)
     except:

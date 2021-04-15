@@ -1,4 +1,4 @@
-import hashlib, json, os, PicClearUp, time
+import hashlib, json, os, PicClearUp, time, re
 from PIL import Image
 from shutil import copyfile
 
@@ -15,8 +15,11 @@ class Ke_ren():
         # self.mainpath = u_path[:-len(u_dir)]
         # print("mainpath", self.mainpath)
         self.qing_di_zhi = ""
+        self.csvList = []
+        self.csv = [u_dir, "", time.strftime("%Y/%m/%d", time.localtime()), "", "", "", ""]
         self.Fen_jian()
         self.ke_ren = {"名称": u_dir, "收件日期": time.strftime("%Y/%m/%d", time.localtime()), "产品列表": self.chan_pin}
+
         # print("mainpath", self.ke_ren)
 
     def Fen_jian(self):
@@ -24,7 +27,6 @@ class Ke_ren():
         self.CopyRight_count = 0
         self.CopyError_count = 0
         self.error_info = []
-        self.chan_pin = []
         if os.path.isfile(self.dir):
             if self.dir.split('.')[-1].lower() == 'jpg':
                 self.picCount = 1
@@ -116,6 +118,8 @@ class Ke_ren():
 
     # 图片产品分类
     def Fen_lei(self, pic_type, newFileName):
+        newCSV = self.csv.copy()
+        newCSV[3] = pic_type[0]
         if pic_type[0] == "未知尺寸":
             # 未知尺寸产品处理
             PicClearUp.mk_dir(os.path.join(self.path, '分拣'), pic_type[0])
@@ -124,6 +128,9 @@ class Ke_ren():
                 {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
                  "保存位置": os.path.join(self.path, '分拣', pic_type[0]),
                  "图片列表": [newFileName]})
+            chackOver = csvCheck(newCSV,self.dir).csv_t
+            self.csvList.append(chackOver)
+
         elif pic_type[0] == "相册":
             # 相册产品处理
             newFileNameList = newFileName.split("-")
@@ -139,6 +146,10 @@ class Ke_ren():
                     {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
                      "保存位置": os.path.join(self.path, '分拣', pic_type[0]),
                      "图片列表": [newFileName]})
+                newCSV[5] = pic_type[1]
+                newCSV[6] = self.picCount
+                chackOver = csvCheck(newCSV,self.dir).csv_t
+                self.csvList.append(chackOver)
             else:
                 self.chan_pin[-1].get("图片列表").append(newFileName)
 
@@ -151,6 +162,10 @@ class Ke_ren():
                     {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
                      "保存位置": os.path.join(self.path, '分拣', pic_type[0]),
                      "图片列表": [newFileName]})
+                newCSV[5] = pic_type[1]
+                newCSV[6] = self.picCount
+                newCSV[4] = "实木"
+                self.csvList.append(newCSV)
             else:
                 self.chan_pin[-1].get("图片列表").append(newFileName)
 
@@ -163,4 +178,105 @@ class Ke_ren():
                 {"类型": pic_type[0], "尺寸": pic_type[1], "数量": self.picCount,
                  "保存位置": os.path.join(self.path, '分拣', pic_type[0]),
                  "图片列表": [newFileName]})
+            newCSV[5] = pic_type[1][:-2]
+            newCSV[6] = 1
+            chackOver = csvCheck(newCSV,self.dir).csv_t
+            self.csvList.append(chackOver)
+        # print("csv=",newCSV)
         return savepath, newFileName
+
+
+class csvCheck():
+    def __init__(self, csv_t,path=""):
+        self.csv_t = csv_t
+        self.path = path
+        self.nameCheck()
+        self.chanPinChack()
+        print("csv",self.csv_t)
+
+
+    def nameCheck(self):
+        deltxtlist = ["制作", "不看", "看板", "（刚）", "（", "）", "(", ")", "_", " ",".","1","2","3","4","5","6","7","8","9","0"]
+        name = self.csv_t[0]
+        for i in deltxtlist:
+            name = name.replace(i, "")
+        self.csv_t[0] = name
+
+    def chanPinChack(self):
+        if self.csv_t[3] == "相册":
+            if self.csv_t[5] == "方10":
+                if re.search('薄', self.path):
+                    self.csv_t[4] ="超薄"
+                elif re.search('水泥', self.path):
+                    self.csv_t[4] ="水泥灰"
+                else:
+                    self.csv_t[4] ="普通册"
+
+            elif self.csv_t[5] == "方8":
+                if re.search('蓝', self.path):
+                    self.csv_t[4] ="蓝色"
+                elif re.search('粉', self.path):
+                    self.csv_t[4] ="粉色"
+                elif re.search('水泥', self.path):
+                    self.csv_t[4] ="水泥灰"
+                elif re.search('灰', self.path):
+                    self.csv_t[4] ="399套（灰）"
+                else:
+                    self.csv_t[4] ="普通册"
+
+            elif self.csv_t[5] == "窄8" or self.csv_t[5] == "8寸琉璃":
+                if re.search('蓝', self.path):
+                    self.csv_t[4] ="蓝色"
+                elif re.search('粉', self.path):
+                    self.csv_t[4] ="粉色"
+                elif re.search('琉璃', self.path):
+                    self.csv_t[4] ="琉璃"
+                elif re.search('水晶', self.path):
+                    self.csv_t[4] = "琉璃"
+                else:
+                    self.csv_t[4] ="普通册"
+
+            elif self.csv_t[5] == "16寸":
+                self.csv_t[4] ="白色"
+
+            elif self.csv_t[5] == "12寸":
+                if re.search('水晶', self.path):
+                    self.csv_t[4] ="琉璃"
+                elif re.search('琉璃', self.path):
+                    self.csv_t[4] ="琉璃"
+                else:
+                    self.csv_t[4] ="普通册"
+
+        elif self.csv_t[3] == "摆台":
+            if self.csv_t[5] == "方10":
+                self.csv_t[4] = "板画"
+            elif self.csv_t[5] == "8寸":
+                if re.search('灰', self.path):
+                    self.csv_t[4] ="399套（灰）"
+                elif re.search('绿', self.path):
+                    self.csv_t[4] ="初音"
+                else:
+                    self.csv_t[4] ="芳华"
+            elif self.csv_t[5] == "10寸":
+                self.csv_t[4] ="芳华"
+            elif self.csv_t[5] == "大10寸":
+                self.csv_t[4] ="芳华"
+
+        elif self.csv_t[3] == "放大":
+            if self.csv_t[5] == "20寸":
+                if re.search('灰', self.path):
+                    self.csv_t[4] ="399套（灰）"
+                elif re.search('绿', self.path):
+                    self.csv_t[4] ="初音"
+                else:
+                    self.csv_t[4] ="芳华"
+            elif self.csv_t[5] == "窄30寸":
+                self.csv_t[4] ="水泥灰"
+            elif self.csv_t[5] == "32寸":
+                self.csv_t[4] ="实木"
+            elif self.csv_t[5] == "24寸":
+                self.csv_t[4] ="巧克力"
+
+if __name__ == '__main__':
+    test = ["1 2 3 4 5 6", "", time.strftime("%Y/%m/%d", time.localtime()), "", "", "", ""]
+    a = csvCheck(test)
