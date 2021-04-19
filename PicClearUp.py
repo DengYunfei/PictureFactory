@@ -1,9 +1,11 @@
-import os, re, KeRen, json, csv,csvOutput
+import os, re, KeRen, json, csv, csvOutput
 from tkinter import messagebox
 import tkinter as tk
 from tkinter import filedialog
 
 chan_pin = []
+
+
 class PicClearUp_UI():
     def __init__(self, path=""):
         self.root = tk.Tk()
@@ -51,7 +53,7 @@ def mk_dir(path, file):
 # 图片分拣主方法
 def pic_filtrate(path):
     mk_dir(path, '分拣')
-    error_info=[]
+    error_info = []
     count = 0
     CopyRight_count = 0
     CopyError_count = 0
@@ -79,8 +81,9 @@ def pic_filtrate(path):
 
     with open(os.path.join(path, '分拣', 'chan_pin.json'), 'w', encoding='utf-8') as json_file:
         json.dump(chan_pin, json_file, ensure_ascii=False, indent=4)
-    counts={"count":count,"CopyRight_count":CopyRight_count,"CopyError_count":CopyError_count}
+    counts = {"count": count, "CopyRight_count": CopyRight_count, "CopyError_count": CopyError_count}
     return error_info, counts
+
 
 def get_input_path(path=""):
     op = PicClearUp_UI(path)
@@ -99,8 +102,8 @@ def pic_clear_up(fpath):
     error_info, counts = pic_filtrate(fpath)
     # 反馈运行结果
     messagebox.showinfo("成功", '共导检测到【' + str(counts.get('count')) + '】张照片\n新添加【' + str(
-    counts.get('CopyRight_count')) + '】张照片\n包含错误【' + str(counts.get('CopyError_count')) + '】个错误')
-# 反馈错误信息
+        counts.get('CopyRight_count')) + '】张照片\n包含错误【' + str(counts.get('CopyError_count')) + '】个错误')
+    # 反馈错误信息
     if error_info:
         error_text = '错误信息'
         count = 1

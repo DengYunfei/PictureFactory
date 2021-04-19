@@ -165,6 +165,3 @@ class Ke_ren():
                  "保存位置": os.path.join(self.path, '分拣', pic_type[0]),
                  "图片列表": [newFileName]})
         return savepath, newFileName
-
-
-
