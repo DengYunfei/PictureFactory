@@ -1,10 +1,9 @@
-import os, re, KeRen, json, csv
+import os, re, KeRen, json, csv,csvOutput
 from tkinter import messagebox
 import tkinter as tk
 from tkinter import filedialog
 
 chan_pin = []
-chan_pin_csv = []
 class PicClearUp_UI():
     def __init__(self, path=""):
         self.root = tk.Tk()
@@ -67,13 +66,14 @@ def pic_filtrate(path):
         CopyRight_count += ke_ren.CopyRight_count
         CopyError_count += ke_ren.CopyError_count
         chan_pin.append(ke_ren.ke_ren)
-        chan_pin_csv.append(ke_ren.csvList)
+
+        chan_pin_csv = csvOutput.JsonToCsv(chan_pin)
         # print(ke_ren.csvList)
 
     # print()
     with open(os.path.join(path, '分拣', 'chan_pin.csv'), 'w', encoding='gbk') as csv_file:
         writer = csv.writer(csv_file)
-        for i in chan_pin_csv:
+        for i in chan_pin_csv.csv_t:
             for j in i:
                 writer.writerow(j)
 
