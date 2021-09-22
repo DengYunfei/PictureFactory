@@ -30,9 +30,13 @@ class JsonToCsv():
             if s.get("类型") == "相册":
                 _fengGe = self.xiangCeCheck(size, fileName, isFangHua)
             elif s.get("类型") == "摆台":
+                newCsv[6] = 1
                 _fengGe = self.baiTaiCheck(size, fileName)
+
             elif s.get("类型") == "放大":
+                newCsv[6] = 1
                 _fengGe = self.fangDaCheck(size, fileName)
+
             elif s.get("类型") == "台历":
                 if len(s.get("图片列表")) >= 6:
                     _fengGe = "实木"
